@@ -1,0 +1,97 @@
+using System;
+using System.Timers;
+
+public class Stopwatch
+{
+    private Timer timer;
+    private int elapsedSeconds;
+    public bool IsRunning { get; private set; }
+
+    public delegate void StopwatchEventHandler(string message);
+    public event StopwatchEventHandler OnStarted;
+    public event StopwatchEventHandler OnStopped;
+    public event StopwatchEventHandler OnReset;
+
+    public Stopwatch()
+    {
+        timer = new Timer(1000); // Tick every second
+        timer.Elapsed += OnTick;
+        elapsedSeconds = 0;
+        IsRunning = false;
+    }
+
+    public void Start()
+    {
+        if (!IsRunning)
+        {
+            timer.Start();
+            IsRunning = true;
+            OnStarted?.Invoke("Stopwatch Started!");
+        }
+    }
+
+    public void Stop()
+    {
+        if (IsRunning)
+        {
+            timer.Stop();
+            IsRunning = false;
+            OnStopped?.Invoke("Stopwatch Stopped!");
+        }
+    }
+
+    public void Reset()
+    {
+        Stop();
+        elapsedSeconds = 0;
+        OnReset?.Invoke("Stopwatch Reset!");
+    }
+
+    private void OnTick(object sender, ElapsedEventArgs e)
+    {
+        elapsedSeconds++;
+        Console.WriteLine($"Time Elapsed: {elapsedSeconds} seconds");
+    }
+}
+
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.OnStarted += DisplayMessage;
+        stopwatch.OnStopped += DisplayMessage;
+        stopwatch.OnReset += DisplayMessage;
+
+        while (true)
+        {
+            Console.WriteLine("Press S to Start, T to Stop, R to Reset, or Q to Quit");
+            var input = Console.ReadKey(true).Key;
+
+            switch (input)
+            {
+                case ConsoleKey.S:
+                    stopwatch.Start();
+                    break;
+                case ConsoleKey.T:
+                    stopwatch.Stop();
+                    break;
+                case ConsoleKey.R:
+                    stopwatch.Reset();
+                    break;
+                case ConsoleKey.Q:
+                    return;
+                default:
+                    Console.WriteLine("Invalid input, please try again.");
+                    break;
+            }
+        }
+    }
+
+    private static void DisplayMessage(string message)
+    {
+        Console.WriteLine(message);
+    }
+}
